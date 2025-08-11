@@ -19,7 +19,7 @@ static int get_signal_level(int timeout_us, bool level) {
 dht22_error_t __start_signal(){
     gpio_set_direction(DHT22_PORT_NUM, GPIO_MODE_OUTPUT);
     gpio_set_level(DHT22_PORT_NUM, 0);
-    esp_rom_delay_us(2000);
+    esp_rom_delay_us(5000);
     gpio_set_level(DHT22_PORT_NUM, 1);
     esp_rom_delay_us(40);
     return DHT22_OK;
@@ -55,7 +55,6 @@ dht22_error_t __read_data(dht22_data_t* data){
     bytelist[4] = cur_byte;
     data->humidity = ((bytelist[0] << 8) | bytelist[1]) / 10.0;
     data->temperature = ((bytelist[2] << 8) | bytelist[3]) / 10.0;
-
     if (((bytelist[0] + bytelist[1] + bytelist[2] + bytelist[3]) & 0xFF) == bytelist[4]){
         return DHT22_OK;
     }

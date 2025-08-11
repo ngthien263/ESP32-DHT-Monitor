@@ -5,11 +5,26 @@
 extern "C" {
 #endif
 #include "stdint.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+#include "notification_handle.h"
+#define DHT22_MAX_SUBSCRIBERS 100
 
 typedef struct dht22_data_t {
     float temperature; 
     float humidity; 
 } dht22_data_t;
+
+typedef struct dht22_t {
+    SemaphoreHandle_t mtx;
+    dht22_data_t data;
+    notification_handle_t* subscribers[DHT22_MAX_SUBSCRIBERS];
+} dht22_t;
+
+typedef struct {
+    dht22_t* sensor;          
+    TaskHandle_t task_handle;
+} observer_ctx_t;
 
 typedef enum dht22_error_t {
     DHT22_OK,
@@ -17,16 +32,11 @@ typedef enum dht22_error_t {
     DHT22_ERROR_CHECKSUM,
     DHT22_ERROR_NO_RESPONSE,
     DHT22_ERROR_NULL_POINTER,
-    DHT22_ERROR_IN_PROGRESS
+    DHT22_ERROR_IN_PROGRESS,
+    DHT22_ERROR_MUTEX_TIMEOUT
 } dht22_error_t;
 
-typedef enum dht22_state_t {
-    DHT22_STATE_IDLE,
-    DHT22_STATE_START_SIGNAL,
-    DHT22_STATE_WAIT_REPONSE,
-    DHT22_STATE_READ_DATA,
-    DHT22_STATE_FINISH
-} dht22_state_t;
+
 
 #ifdef __cplusplus
 }

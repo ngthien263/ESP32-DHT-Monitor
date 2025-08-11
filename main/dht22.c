@@ -8,17 +8,18 @@
 #include "freertos/timers.h"
 #include "freertos/task.h"
 void dht22_init(dht22_t* const self) {
-    self->data = NULL;
+    self->data.temperature = 0;
+    self->data.humidity = 0;
     for(int pos = 0; pos < DHT22_MAX_SUBSCRIBERS; pos++){
         self->subscribers[pos] = NULL;
     }
+    self->mtx = xSemaphoreCreateMutex();
 }
 void dht22_cleanup(dht22_t* const self) {
     for(int pos = 0; pos < DHT22_MAX_SUBSCRIBERS; pos++) {
         if (self->subscribers[pos])
             dht22_unsubscribe(self, self->subscribers[pos]->subscriber_update_func);
     }
-    free(self->data);
     free(self);
 }
 
@@ -33,23 +34,35 @@ void dht22_dump_list(dht22_t* const self) {
 }
 
 dht22_error_t dht22_get_data(dht22_t* const self) {
+    dht22_data_t tmp;
     __start_signal();
-	if (__wait_respond_signal() == DHT22_OK){
-		__read_data(self->data);
-		printf("Humidity: %.2f\n", self->data->humidity);
-		printf("Temprature: %.2f\n", self->data->temperature);
-	} else {
+	if (__wait_respond_signal() != DHT22_OK){
 		return DHT22_ERROR_TIMEOUT;
 	}
+    __read_data(&tmp);
+    if(xSemaphoreTake(self->mtx, portMAX_DELAY) == pdTRUE){
+        self->data.temperature = tmp.temperature;
+        self->data.humidity = tmp.humidity;
+        xSemaphoreGive(self->mtx);
+    }
+    else return DHT22_ERROR_TIMEOUT;
     dht22_notify(self);
 	return DHT22_OK;
+}
+
+void dht22_update_data(dht22_t* const self, dht22_data_t* data){
+    if(xSemaphoreTake(self->mtx, portMAX_DELAY) == pdTRUE){
+        data->temperature = self->data.temperature;
+        data->humidity = self->data.humidity;
+    }
+    xSemaphoreGive(self->mtx);
 }
 
 void dht22_notify(dht22_t* const self) {
     for(int pos = 0; pos < DHT22_MAX_SUBSCRIBERS; pos++){
         if(self->subscribers[pos])
             if(self->subscribers[pos]->subscriber_update_func){
-                self->subscribers[pos]->subscriber_update_func(self->subscribers[pos]->subscriber_instance, self->data);
+                self->subscribers[pos]->subscriber_update_func(self->subscribers[pos]->subscriber_instance);
             }
     }
 }
@@ -83,7 +96,6 @@ dht22_t* dht22_create(void){
     dht22_t* self = (dht22_t*)malloc(sizeof(dht22_t));
     if (self != NULL) {
         dht22_init(self);
-        self->data = malloc(sizeof(dht22_data_t));
     }
     return self;
 }
