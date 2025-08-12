@@ -12,7 +12,7 @@ void logger_on_notify(void* instance) {
     if (ctx && ctx->logger_ctx.task_handle != NULL) {
         xTaskNotifyGive(ctx->logger_ctx.task_handle);
     } else {
-        printf("❗Logger notify: task handle NULL!\n");
+        printf("Logger notify: task handle NULL!\n");
     }
 }
 
