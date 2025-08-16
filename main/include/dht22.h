@@ -2,7 +2,6 @@
 #define DHT22_H
 
 #include "dht22_types.h"
-
 #include "dht22_private.h"
 #ifdef __cplusplus
 extern "C" {

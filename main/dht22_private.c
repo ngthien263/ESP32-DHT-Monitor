@@ -48,7 +48,10 @@ dht22_error_t __read_data(dht22_data_t* data){
         uSec = get_signal_level( 50, 0 );
         if( uSec<0 ) return DHT22_ERROR_TIMEOUT; 
         int64_t time = esp_timer_get_time();
-        while(gpio_get_level(DHT22_PORT_NUM));
+        while(gpio_get_level(DHT22_PORT_NUM)){
+            if ((esp_timer_get_time() - time) > 100)   
+                return DHT22_ERROR_TIMEOUT;
+        }
         cur_byte = (esp_timer_get_time() - time > 30) ? (cur_byte << 1) | (1) :cur_byte << 1;
         i++; 
     }

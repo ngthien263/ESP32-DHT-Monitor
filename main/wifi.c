@@ -1,3 +1,8 @@
+/**
+ * @file wifi.c
+ * @brief WiFi initialization and event handling implementation.
+ */
+
 #include "wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -8,6 +13,15 @@ static const char *TAG_AP = "wifi softAP";
 static const char *TAG_STA = "wifi softAP";
 static int s_retry_num = 0;
 static EventGroupHandle_t s_wifi_event_group;
+
+/**
+ * @brief WiFi event handler for AP/STA connection events.
+ *
+ * @param arg 
+ * @param event_base Event base (WIFI_EVENT or IP_EVENT).
+ * @param event_id Event ID.
+ * @param event_data Event data structure.
+ */
 static void wifi_event_handler(void* arg, esp_event_base_t event_base,
                                     int32_t event_id, void* event_data)
 {
@@ -42,7 +56,13 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-
+/**
+ * @brief Initialize ESP32 WiFi as Access Point.
+ *
+ * Registers event handler and applies provided configuration.
+ *
+ * @param wsetup Pointer to WiFi setup structure.
+ */
 void wifi_init_ap(wifi_setup_t* wsetup){
     esp_netif_create_default_wifi_ap();
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
@@ -57,7 +77,13 @@ void wifi_init_ap(wifi_setup_t* wsetup){
     esp_wifi_start();
 }
 
-
+/**
+ * @brief Initialize ESP32 WiFi as Station.
+ *
+ * Registers event handler, configures STA, and attempts to connect.
+ *
+ * @param wsetup Pointer to WiFi setup structure.
+ */
 void wifi_init_sta(wifi_setup_t* wsetup){
     esp_netif_create_default_wifi_sta();
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
