@@ -5,8 +5,13 @@
 extern "C" {
 #endif
 #include "stdint.h"
+#ifdef UNIT_TEST
+#include "mock_freertos.h"
+#endif
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#endif
 #include "notification_handle.h"
 #define DHT22_MAX_SUBSCRIBERS 100
 

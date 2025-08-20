@@ -1,11 +1,36 @@
 #include "dht22_private.h"
+#include "dht22_types.h"
+#ifdef UNIT_TEST
+#include <stdint.h>
+#include <stdbool.h>
+
+#define GPIO_MODE_OUTPUT 1
+#define GPIO_MODE_INPUT 0
+
+int64_t esp_timer_get_time() {
+    static int64_t fake_time = 0;
+    return fake_time += 50;  
+}
+
+int gpio_get_level(int pin) {
+    return 1;  
+}
+
+void gpio_set_direction(int pin, int mode) {}
+void gpio_set_level(int pin, int level) {}
+void esp_rom_delay_us(int us) {}
+
+#endif
+
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
-#include "dht22_types.h"
+#endif
+
 static int get_signal_level(int timeout_us, bool level) {
     int64_t start_time = esp_timer_get_time();  
     while (gpio_get_level(DHT22_PORT_NUM) == level) {

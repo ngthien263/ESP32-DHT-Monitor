@@ -13,7 +13,6 @@ extern "C" {
 typedef void (*dht22_notify_callback)(void*);
 
 
-//
 void dht22_init(dht22_t* const self);
 void dht22_cleanup(dht22_t* const self);
 dht22_error_t dht22_get_data(dht22_t* const self);
