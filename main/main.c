@@ -21,6 +21,7 @@
 #include "esp_log.h"
 #include "esp_netif.h"
 #include "esp_event.h"
+#include "esp_https_ota.h"
 #include "esp_http_client.h"
 #include "dht22.h"
 #include "logger.h"
@@ -28,7 +29,8 @@
 #include "http_client.h"
 #define DHT22_PORT_NUM  4
 
-
+extern const uint8_t cert_pem_start[] asm("_binary_cert_pem_start");
+extern const uint8_t cert_pem_end[]   asm("_binary_cert_pem_end");
 /**
  * @brief Task to periodically read sensor data.
  *
@@ -87,6 +89,7 @@ void http_client_task(void* pvParameter){
 }
 
 void app_main() {
+    
     //Initialize non-volatile storage (NVS). Required by WiFi and other ESP-IDF components to store config.*/
     nvs_flash_init();  
     //Initialize network interface and default event loop. Required for WiFi and TCP/IP stack to work. //
@@ -106,33 +109,48 @@ void app_main() {
     
     // Configure WiFi in Access Point (AP) mode.
     wifi_setup_t wsetup = {
-        .mode = WIFI_MODE_AP,
+        .mode = WIFI_MODE_STA,
         .wconfig = {
-            .ap = {
-                .ssid = "ESP32",
-                .password = "123456789",
-                .authmode =  WIFI_AUTH_WPA2_PSK,
-                .max_connection = 2
+            .sta = {
+                .ssid = "Quoc Vuong 2.4g",
+                .password = "quocvuong1234",
+                .threshold.authmode = WIFI_AUTH_WPA2_PSK,
             },
         },
     };
-    wifi_init_ap(&wsetup);
-
+    wifi_init_sta(&wsetup);
+    xEventGroupWaitBits(s_wifi_event_group, 1,
+                    pdFALSE, pdTRUE, portMAX_DELAY);
     //Initialize HTTP client and subscribe it to sensor updates.
     http_client_t http_client = {0}; 
     http_client.client_ctx.sensor = sensor1;
-    http_client_begin(&http_client, "http://192.168.4.2:8000/sensor");
+    http_client_begin(&http_client, "https://ota.ngocthien263.id.vn/lalest.bin");
     http_client_subscribe(&http_client);
+    
 
+ESP_LOGI("MAIN", "✅ WiFi connected, starting OTA");
+    esp_http_client_config_t config = {
+        .url = "https://ota.ngocthien263.id.vn/lalest.bin",
+        .cert_pem = (const char *)cert_pem_start, 
+    };
+     esp_https_ota_config_t ota_config = {
+        .http_config = &config,
+    };
+    esp_err_t ret = esp_https_ota(&ota_config);
+    if (ret == ESP_OK) {
+        esp_restart(); 
+    } else {
+        ESP_LOGE("OTA", "Firmware upgrade failed");
+    }
     //Create FreeRTOS Task. Call logger and http task first to wait for sensor notify 
-    xTaskCreate(http_client_task, "http_client", 4096, &http_client, 5, NULL);
-    xTaskCreate(logger_task, "logger", 2048, &logger1, 5, NULL);
-    xTaskCreate(read_sensor1_task, "read_sensor1", 2048, sensor1, 5, NULL);
+    // xTaskCreate(http_client_task, "http_client", 4096, &http_client, 5, NULL);
+    // xTaskCreate(logger_task, "logger", 2048, &logger1, 5, NULL);
+    // xTaskCreate(read_sensor1_task, "read_sensor1", 2048, sensor1, 5, NULL);
     
     while (1) {
         vTaskDelay(portMAX_DELAY);
     }
     //Cleanup resources
-    esp_http_client_cleanup(http_client.client_handle);
+    //esp_http_client_cleanup(http_client.client_handle);
     dht22_cleanup(sensor1);
 }

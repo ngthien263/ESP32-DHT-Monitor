@@ -12,7 +12,7 @@
 static const char *TAG_AP = "wifi softAP";
 static const char *TAG_STA = "wifi softAP";
 static int s_retry_num = 0;
-static EventGroupHandle_t s_wifi_event_group;
+ EventGroupHandle_t s_wifi_event_group;
 
 /**
  * @brief WiFi event handler for AP/STA connection events.
@@ -85,6 +85,8 @@ void wifi_init_ap(wifi_setup_t* wsetup){
  * @param wsetup Pointer to WiFi setup structure.
  */
 void wifi_init_sta(wifi_setup_t* wsetup){
+    s_wifi_event_group = xEventGroupCreate();  
+    assert(s_wifi_event_group != NULL);        
     esp_netif_create_default_wifi_sta();
     wifi_init_config_t init_config = WIFI_INIT_CONFIG_DEFAULT();
     esp_event_handler_instance_t instance_any_id;

@@ -1,5 +1,7 @@
 #include "dht22.h"
 #include "stdlib.h"
+#include "stdio.h"
+#ifndef UNIT_TEST
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
@@ -7,6 +9,8 @@
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
+#endif
+
 void dht22_init(dht22_t* const self) {
     self->data.temperature = 0;
     self->data.humidity = 0;

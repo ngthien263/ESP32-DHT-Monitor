@@ -13,7 +13,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+extern EventGroupHandle_t s_wifi_event_group;
 /**
  * @struct wifi_setup_t
  * @brief Encapsulates WiFi configuration and mode.
