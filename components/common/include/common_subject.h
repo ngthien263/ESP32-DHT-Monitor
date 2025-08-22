@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-#define MAX_SUBSCRIBERS 16
+#define MAX_SUBSCRIBERS 100
 
 
 typedef void (*subject_notify_callback_t)(void* instance);
@@ -17,13 +17,15 @@ typedef struct {
     subject_notify_callback_t callback;
 } notification_handle_t;
 
+
+
 typedef struct {
     void (*init)(void* self);
     void (*cleanup)(void*  self);
     void (*subscribe)(void*  self, void* client, subject_notify_callback_t cb);
     void (*unsubscribe)(void*  self, subject_notify_callback_t cb);
     void (*notify)(void*  self);
-    void (*get_data)(void*  self, void* out); 
+    void (*update_data)(void*  self, void* out); 
 } subject_ops_t;
 
 typedef struct {
@@ -40,8 +42,12 @@ static inline void subject_unsubscribe(subject_t* subject, subject_notify_callba
     subject->ops->unsubscribe(subject->self, cb);
 }
 
-static inline void subject_get_data(subject_t* subject, void* out) {
-    subject->ops->get_data(subject->self, out);
+static inline void subject_notify(subject_t* subject){
+    subject->ops->notify(subject);
+}
+
+static inline void subject_update_data(subject_t* subject, void* out) {
+    subject->ops->update_data(subject->self, out);
 }
 
 #ifdef __cplusplus

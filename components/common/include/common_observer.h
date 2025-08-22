@@ -7,8 +7,6 @@
 extern "C" {
 #endif
 
-
-
 typedef struct {
     subject_t* subject;            
     TaskHandle_t task_handle;      
@@ -19,6 +17,10 @@ typedef struct {
     observer_ctx_t ctx;
     void (*on_notify)(void*);
 } observer_t;
+
+static inline void observer_set_subject(observer_t* observer, subject_t* subject){
+    observer->ctx.subject = subject;
+}
 
 static inline void observer_subscribe(observer_t* observer) {
     subject_subscribe(observer->ctx.subject, observer->self, observer->on_notify);

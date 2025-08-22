@@ -31,7 +31,7 @@ typedef struct {
  * @param client Pointer to HTTP client instance.
  * @param url Target server URL.
  */
-void http_client_begin(http_client_t* client, char* url);
+void http_client_init(http_client_t* client, char* url);
 
 /**
  * @brief Perform HTTP POST with sensor data.
@@ -49,17 +49,45 @@ void http_client_post(http_client_t* client, float temperature, float humidity);
  */
 void http_client_get(http_client_t* client, char* buff, size_t len);
 
+
 /**
- * @brief Subscribe HTTP client to sensor notifications.
+ * @brief Set the subject (observable sensor) for the HTTP client.
+ * 
+ * This assigns the subject_t pointer to the internal observer context.
+ * It must be called before subscribing to receive notifications.
+ *
+ * @param client Pointer to HTTP client instance.
+ * @param subject Pointer to observable subject (e.g. a DHT22 sensor).
+ */
+void http_client_set_subject(http_client_t* client, subject_t* subject);
+
+/**
+ * @brief Subscribe HTTP client to subject notifications.
+ * 
+ * When the subject notifies, the client's observer will be notified via task notify.
+ * Requires subject to be set beforehand via http_client_set_subject().
+ *
  * @param client Pointer to HTTP client instance.
  */
-//void http_client_subscribe(http_client_t* client);
+void http_client_subscribe(http_client_t* client);
+
+/**
+ * @brief Unsubscribe HTTP client from subject notifications.
+ *
+ * This removes the client from the subject's subscriber list, stopping further updates.
+ * Does nothing if the client was not previously subscribed.
+ *
+ * @param client Pointer to HTTP client instance.
+ */
+void http_client_unsubscribe(http_client_t* client);
 
 /**
  * @brief Clean up HTTP client resources.
  * @param client Pointer to HTTP client instance.
  */
-void http_client_clean(http_client_t* client);
+void http_client_cleanup(http_client_t* client);
+
+
 #ifdef __cplusplus
 }
 #endif
