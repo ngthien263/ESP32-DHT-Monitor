@@ -27,11 +27,11 @@
 #include "http_client.h"
 #define DHT22_PORT_NUM  4
 
-
 void app_main() {  
    subject_t* sensor1 = dht22_create();
    http_client_t http_client = {0}; 
    observer_set_subject(&http_client.base_observer, sensor1);
+   printf("%p\n", &http_client);
    http_client_init(&http_client, "http://192.168.4.2:8000/sensor");
    http_client_subscribe(&http_client);
 }
