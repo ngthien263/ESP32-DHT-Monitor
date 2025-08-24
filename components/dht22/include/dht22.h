@@ -1,7 +1,11 @@
 #ifndef DHT22_H
 #define DHT22_H
 
+#ifndef UNIT_TEST
 #include "freertos/semphr.h"
+#else   
+#include "mock_freertos.h"
+#endif
 
 #include "dht22_types.h"        
 
@@ -14,12 +18,6 @@ extern "C" {
 #endif
 
 
-/**
- * @brief Destroy the DHT22 object
- * 
- * @param self DHT22 instance
- */
-void dht22_destroy(dht22_t* self);
 
 /** 
  * @brief Create a new DHT22 instance and return its Subject interface.
@@ -37,16 +35,23 @@ subject_t* dht22_create(void);
  * @retval DHT22_OK          Success.
  * @retval DHT22_ERROR_TIMEOUT Timeout waiting for sensor or mutex.
  */
-dht22_error_t dht22_get_data(dht22_t* self);
 
-/**
- * @brief Copy the measured data to the output 
+ /**
+ * @brief Destroy a DHT22 instance.
  *
  *
- * @param[in]  self DHT22 instance handle.
- * @param[out] out  Destination buffer for sensor data (must not be NULL).
+ * @param[in,out] subject Subject interface pointer returned by ::dht22_create.
  */
-void dht22_update_data(dht22_t* self, dht22_data_t* out);
+void dht22_destroy(subject_t* subject);
+
+// /**
+//  * @brief Copy the measured data to the output 
+//  *
+//  *
+//  * @param[in]  self DHT22 instance handle.
+//  * @param[out] out  Destination buffer for sensor data (must not be NULL).
+//  */
+// void dht22_update_data(dht22_t* self, dht22_data_t* out);
 
 #ifdef __cplusplus
 }

@@ -5,9 +5,7 @@
  * This file provides the concrete implementation of the DHT22 sensor driver,
  * including: Subject interface operations (init, cleanup, subscribe, unsubscribe, notify, update).
  */
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef UNIT_TEST
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
@@ -16,6 +14,12 @@
 #include "freertos/timers.h"
 #include "freertos/semphr.h"
 #include "esp_log.h"
+#else   
+#include "mock_freertos.h"
+#endif
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 #include "dht22.h"
 #include "dht22_private.h"
 #include "common_subject.h"  
@@ -63,13 +67,13 @@ static void dht22_init(void* self_ptr) {
     self->subject.ops = &dht22_ops;
     self->subject.self = self;
     self->mtx = xSemaphoreCreateMutex();
-    memset(self->subscribers, 0, sizeof(self->subscribers));
+    memset(self->subject.subscribers, 0, sizeof(self->subject.subscribers));
 }
 
 /**
- * @brief Cleanup a DHT22 instance and release its resources.
+ * @brief Cleanup DHT22 resources.
  *
- * Deletes the internal mutex and frees the DHT22 instance.
+ * Deletes the internal resources of dht22
  *
  * @param[in,out] self_ptr Pointer to dht22_t instance.
  */
@@ -77,8 +81,21 @@ static void dht22_init(void* self_ptr) {
 static void dht22_cleanup(void* self_ptr) {
     dht22_t* self = (dht22_t*)self_ptr;
     if (!self) return;
-    if (self->mtx) vSemaphoreDelete(self->mtx);
-    free(self);
+
+    for (int pos = 0; pos < MAX_SUBSCRIBERS; pos++) {
+        if (self->subject.subscribers[pos]) {
+            free(self->subject.subscribers[pos]);
+            self->subject.subscribers[pos] = NULL;
+        }
+    }
+
+    if (self->mtx) {
+        vSemaphoreDelete(self->mtx);
+        self->mtx = NULL;
+    }
+
+    self->subject.ops  = NULL;
+    self->subject.self = NULL;
 }
 
 /** 
@@ -94,6 +111,22 @@ subject_t* dht22_create(void) {
     if (!self) return NULL;
     dht22_init(self);
     return &self->subject;
+}
+
+/**
+ * @brief Destroy a DHT22 instance.
+ *
+ * Calls internal cleanup (deletes mutex, frees subscribers).
+ * and free dht22 instances 
+ *
+ * @param[in,out] subject Subject interface pointer returned by ::dht22_create.
+ */
+void dht22_destroy(subject_t* subject) {
+    if (!subject) return;
+    dht22_t* self = (dht22_t*)subject->self;
+    if (!self) return;
+    dht22_cleanup(self);
+    free(self);
 }
 
 /**
@@ -171,13 +204,17 @@ static void dht22_subscribe(void* self_ptr, void* client, subject_notify_callbac
     nh->instance = client;
     nh->callback = cb;
     for(int pos = 0; pos < MAX_SUBSCRIBERS; pos++){
-        if(!self->subscribers[pos]) {
-            self->subscribers[pos] = nh;
-            ESP_LOGI(TAG, "Subscribe success %p %p", nh->instance, nh->callback);
+        if(!self->subject.subscribers[pos]) {
+            self->subject.subscribers[pos] = nh;
+            #ifndef UNIT_TEST
+            ESP_LOGI(TAG, "Subscribe success to Subject: %p, Instance: %p, Callback: %p", &self->subject,  nh->instance, nh->callback);
+            #endif
             return; 
         }
     }
+    #ifndef UNIT_TEST
     ESP_LOGI(TAG, "Subscribe failed, max subscribers reached\n");
+    #endif
     free(nh);
 }
 
@@ -192,10 +229,10 @@ static void dht22_subscribe(void* self_ptr, void* client, subject_notify_callbac
 static void dht22_unsubscribe(void* self_ptr, subject_notify_callback_t cb) {
     dht22_t* self = (dht22_t*)self_ptr;
     for(int pos = 0; pos < MAX_SUBSCRIBERS; pos++){
-        if(self->subscribers[pos])
-            if(self->subscribers[pos]->callback == cb) {
-                free(self->subscribers[pos]);
-                self->subscribers[pos] = NULL;
+        if(self->subject.subscribers[pos])
+            if(self->subject.subscribers[pos]->callback == cb) {
+                free(self->subject.subscribers[pos]);
+                self->subject.subscribers[pos] = NULL;
             }
     }
 }
@@ -210,9 +247,9 @@ static void dht22_unsubscribe(void* self_ptr, subject_notify_callback_t cb) {
 static void dht22_notify(void* self_ptr) {
     dht22_t* self = (dht22_t*)self_ptr;
     for(int pos = 0; pos < MAX_SUBSCRIBERS; pos++){
-        if(self->subscribers[pos])
-            if(self->subscribers[pos]->callback){
-                self->subscribers[pos]->callback(self->subscribers[pos]->instance);
+        if(self->subject.subscribers[pos])
+            if(self->subject.subscribers[pos]->callback){
+                self->subject.subscribers[pos]->callback(self->subject.subscribers[pos]->instance);
             }
     }
 }

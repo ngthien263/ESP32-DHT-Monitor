@@ -1,11 +1,19 @@
+/**
+ * @file dht22_private.c
+ * @brief Internal low-level functions for DHT22 sensor communication.
+ */
 #include <stdint.h>
 #include "dht22_private.h"
-#include "freertos/FreeRTOS.h"
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
+#else
+#include "mock_freertos.h"
+#include "mock_gpio.h"
+#endif
 
 /**
  * @brief Measure how long the GPIO stays at the specified level.

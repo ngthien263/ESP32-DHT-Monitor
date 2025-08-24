@@ -10,8 +10,12 @@ extern "C" {
 #endif
 
 #include <stdint.h>
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#else
+#include "mock_freertos.h"
+#endif
 #include "common_subject.h"   /**< Defines subject_t, notification_handle_t, MAX_SUBSCRIBERS. */
 
 /** Default GPIO for DHT22 data line. */
@@ -41,7 +45,6 @@ typedef struct {
     subject_t subject;                           /**< Subject interface (ops + self back-pointer). */
     SemaphoreHandle_t mtx;                       /**< Mutex guarding data/subscribers. */
     dht22_data_t data;                           /**< Cached latest reading. */
-    notification_handle_t* subscribers[MAX_SUBSCRIBERS]; /**< Subscriber slots (NULL if free). */
 } dht22_t;
 
 /**

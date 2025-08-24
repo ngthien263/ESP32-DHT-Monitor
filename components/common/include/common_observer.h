@@ -16,7 +16,11 @@
 #define COMMON_OBSERVER_H
 
 #include "common_subject.h"
+#ifndef UNIT_TEST
 #include "freertos/task.h"
+#else 
+#include "mock_freertos.h"
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
