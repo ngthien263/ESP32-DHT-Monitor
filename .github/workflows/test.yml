@@ -1,0 +1,23 @@
+name: Unit Tests
+
+on:
+  push:
+    branches:
+      - restructure
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    name: Run Unit Tests on Host
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Build and Run Tests
+        run: |
+          cd test
+          make
