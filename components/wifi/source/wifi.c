@@ -2,7 +2,7 @@
  * @file wifi.c
  * @brief WiFi initialization and event handling implementation.
  */
-
+#ifndef UNIT_TEST
 #include "wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -109,3 +109,5 @@ void wifi_init_sta(wifi_setup_t* wsetup){
 void wifi_app_send_msg(char* msg){
     
 }
+
+#endif

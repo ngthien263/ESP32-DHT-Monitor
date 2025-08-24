@@ -5,7 +5,10 @@
 #ifndef HTTP_CLIENT_H
 #define HTTP_CLIENT_H
 
+#ifndef UNIT_TEST
 #include "esp_http_client.h"
+
+
 #include "common_observer.h"
 #include "dht22.h"
 #ifdef __cplusplus
@@ -91,5 +94,5 @@ void http_client_cleanup(http_client_t* client);
 #ifdef __cplusplus
 }
 #endif
-
+#endif
 #endif

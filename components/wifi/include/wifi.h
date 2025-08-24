@@ -8,6 +8,7 @@
 #ifndef WIFI_H
 #define WIFI_H
 
+#ifndef UNIT_TEST
 #include "esp_netif.h"
 #include "esp_wifi.h"
 #ifdef __cplusplus
@@ -42,5 +43,5 @@ void wifi_init_sta(wifi_setup_t* wsetup);
 #ifdef __cplusplus
 }
 #endif
-
+#endif
 #endif // WIFI_H

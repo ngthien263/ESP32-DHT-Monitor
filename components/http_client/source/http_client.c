@@ -2,7 +2,7 @@
  * @file http_client.c
  * @brief Implementation of HTTP client wrapper for ESP-IDF.
  */
-
+#ifndef UNIT_TEST
 #include "http_client.h"
 #include "esp_log.h"
 #include <inttypes.h>
@@ -93,3 +93,4 @@ void http_client_cleanup(http_client_t* client) {
     esp_http_client_cleanup(client->client_handle);
 }
 
+#endif
