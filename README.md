@@ -6,9 +6,8 @@ A modular sensor monitoring system built with ESP-IDF and FreeRTOS, following cl
 
 ## 🧱 Architecture Overview
 
-- **Sensor Layer:** DHT22 driver (1-wire protocol) periodically samples temperature and humidity.
-- **Subject Layer:** Implements observer pattern (subscribe, notify).
-- **Observer Layer:** Includes logger, HTTP client, and optionally LCD display.
+- **Subject Layer:** Implements interface for subject (eg: sensor, ...).
+- **Observer Layer:** Implements interface for observer (eg: HTTP client, LCD display, ... ).
 - **Communication:** Uses FreeRTOS primitives — `mutex`, `event group`, `queue` — to synchronize data flow.
 
 👉 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for full architecture description.
