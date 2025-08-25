@@ -59,4 +59,7 @@ void app_main() {
    
    // http_client_init(&http_client, "http://192.168.4.2:8000/sensor");
    // http_client_subscribe(&http_client);
+
+   esp_http_client_cleanup(http_client.client_handle);
+   dht22_cleanup(sensor1);
 }
