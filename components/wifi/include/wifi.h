@@ -14,7 +14,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#define WIFI_NAMESPACE "wifi"
 /**
  * @struct wifi_setup_t
  * @brief Encapsulates WiFi configuration and mode.

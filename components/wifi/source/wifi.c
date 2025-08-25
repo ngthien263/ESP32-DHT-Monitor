@@ -9,6 +9,7 @@
 #include "esp_log.h"
 #include "esp_mac.h"
 
+
 static const char *TAG_AP = "wifi softAP";
 static const char *TAG_STA = "wifi softAP";
 static int s_retry_num = 0;
@@ -105,9 +106,5 @@ void wifi_init_sta(wifi_setup_t* wsetup){
     esp_wifi_start();
 }
 
-
-void wifi_app_send_msg(char* msg){
-    
-}
 
 #endif
