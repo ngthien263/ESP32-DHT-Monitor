@@ -1,9 +1,10 @@
+
 name: Host Unit Tests
 
 on:
   push:
     branches:
-      - test/*
+    - main
   pull_request:
     branches:
       - main
@@ -14,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🔄 Checkout source code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: 🛠️ Build and Run Tests
+      - name: Build and Run Tests
         run: |
           cd test
           make

@@ -2,7 +2,7 @@
  * @file http_client.c
  * @brief Implementation of HTTP client wrapper for ESP-IDF.
  */
-
+#ifndef UNIT_TEST
 #include "http_client.h"
 #include "esp_log.h"
 #include <inttypes.h>
@@ -10,9 +10,22 @@
 
 static const char *TAG = "HTTP_CLIENT";
 
-void http_client_begin(http_client_t* client, char* url){
+static void http_client_on_notify(void* instance){
+    http_client_t* ctx = (http_client_t*)instance;
+    if (ctx && ctx->base_observer.ctx.task_handle != NULL) {
+        xTaskNotifyGive(ctx->base_observer.ctx.task_handle);
+    } else {
+        ESP_LOGE(TAG, "Task handle NULL");
+    }
+}
+
+void http_client_init(http_client_t* client, char* url){
     if (!client) return;
     memset(&client->client_config, 0, sizeof(esp_http_client_config_t));
+
+    client->base_observer.self = client;
+    client->base_observer.on_notify = http_client_on_notify;
+
     if(!client->header_key)    client->header_key = "Content-Type";  
     if(!client->header_value)  client->header_value = "application/json";
  
@@ -64,19 +77,20 @@ void http_client_get(http_client_t* client, char* buff, size_t len) {
     }
 }
 
-static void http_client_on_notify(void* instance){
-    http_client_t* ctx = (http_client_t*)instance;
-    if (ctx && ctx->client_ctx.task_handle != NULL) {
-        xTaskNotifyGive(ctx->client_ctx.task_handle);
-    } else {
-        ESP_LOGE(TAG, "Task handle NULL");
-    }
+void http_client_set_subject(http_client_t* client, subject_t* subject){
+    observer_set_subject(&client->base_observer, subject);
 }
 
 void http_client_subscribe(http_client_t* client) {
-    dht22_subscribe(client->client_ctx.sensor, client, http_client_on_notify);
+    observer_subscribe(&client->base_observer);
 }
 
-void http_client_clean(http_client_t* client) {
+void http_client_unsubscribe(http_client_t* client) {
+    observer_unsubscribe(&client->base_observer);
+}
+
+void http_client_cleanup(http_client_t* client) {
     esp_http_client_cleanup(client->client_handle);
 }
+
+#endif

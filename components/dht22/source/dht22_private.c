@@ -1,11 +1,30 @@
+/**
+ * @file dht22_private.c
+ * @brief Internal low-level functions for DHT22 sensor communication.
+ */
+#include <stdint.h>
 #include "dht22_private.h"
-#include "freertos/FreeRTOS.h"
+#ifndef UNIT_TEST
 #include "freertos/FreeRTOSConfig.h"
 #include "freertos/timers.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
-#include "dht22_types.h"
+#else
+#include "mock_freertos.h"
+#include "mock_gpio.h"
+#endif
+
+/**
+ * @brief Measure how long the GPIO stays at the specified level.
+ *
+ * Measure the duration (in µs) that the data line remains at `level`. 
+ *
+ * @param timeout_us Maximum time to wait (in microseconds)
+ * @param level The expected GPIO level to measure (0 or 1)
+ * @return Duration in µs if successful
+ *         -1 if timeout occurred.
+ */
 static int get_signal_level(int timeout_us, bool level) {
     int64_t start_time = esp_timer_get_time();  
     while (gpio_get_level(DHT22_PORT_NUM) == level) {
@@ -16,14 +35,31 @@ static int get_signal_level(int timeout_us, bool level) {
     return (int)(esp_timer_get_time() - start_time);
 }
 
+
+/**
+ * @brief Send start signal to the DHT22 sensor
+ *
+ * Pulls the data line LOW for >1ms, then HIGH 20-40us to wait for DHT22's response
+ *
+ * @return DHT22_OK: Success
+ */
 dht22_error_t __start_signal(){
     gpio_set_direction(DHT22_PORT_NUM, GPIO_MODE_OUTPUT);
     gpio_set_level(DHT22_PORT_NUM, 0);
-    esp_rom_delay_us(5000);
+    esp_rom_delay_us(2000);
     gpio_set_level(DHT22_PORT_NUM, 1);
     esp_rom_delay_us(40);
     return DHT22_OK;
 }
+
+/**
+ * @brief Wait for response signal from DHT22.
+ *
+ * Waits for DHT22 respond: LOW (~80us) then HIGH (~80us).
+ *
+ * @return DHT22_OK: Success
+ *         DHT22_ERROR_TIMEOUT: The signal was not received in time
+ */
 
 dht22_error_t __wait_respond_signal(){
     gpio_set_direction (DHT22_PORT_NUM, GPIO_MODE_INPUT);
@@ -33,6 +69,21 @@ dht22_error_t __wait_respond_signal(){
     if( uSec<0 ) return DHT22_ERROR_TIMEOUT; 
     return DHT22_OK;
 }
+
+/**
+ * @brief Read raw 40-bit data from the DHT22 sensor.
+ *
+ *
+ * Each bit starts with ~50µs LOW, followed by:
+ * - ~26–28µs HIGH = 0
+ * - ~70µs HIGH    = 1
+ *
+ * After reading all 40 bits, extracts humidity,
+ * temperature, and verifies the checksum.
+ *
+ * @param[out] data Output structure for humidity and temperature.
+ * @return DHT22_OK if checksum is correct, or error code.
+ */
 
 dht22_error_t __read_data(dht22_data_t* data){
     uint8_t cur_byte = 0;

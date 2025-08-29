@@ -15,7 +15,6 @@ A modular sensor monitoring system built with ESP-IDF and FreeRTOS, following cl
 ---
 
 ## ⚙️ Build & Run
-
 ```bash
 idf.py build
 idf.py flash monitor
@@ -27,7 +26,6 @@ idf.py flash monitor
 Built with **Unity Test Framework**, decoupled from ESP32 hardware using mocks.  
 
 ### ✅ Test coverage includes:
-- **DHT22 data decoding**: valid/invalid checksum, NaN, boundary values
 - **Subject/Observer**: subscribe, notify, unsubscribe, memory safety
 - **FreeRTOS mocks**: correct usage of `xTaskNotifyGive`, `xQueueSend`
 
@@ -38,10 +36,3 @@ make
 
 ```
 
-##  Roadmap
-
- Secure Wi-Fi (WPA2/TLS, SNTP)
-
- LCD SPI display (ST7735/7789)
-
- OTA update (ESP-IDF built-in)
