@@ -1,52 +1,67 @@
 #include "test_subject.h"
-#include "dht22.h"
+
 static subject_create_fnc create = NULL;
 static subject_destroy_fnc destroy = NULL;
 subject_t* s = NULL;
-static int called = 0;
+static int callback_called[100];
 
-static void mock_callback(void* instance) { called++; }
+static void mock_callback(void* ctx) {
+    int id = (int)(uintptr_t)ctx;
+    callback_called[id]++;
+}
 
 
 void setUp(){
     s = create();
-    called = 0;
 }
 
 void tearDown(){
     destroy(s);
 }
 
-void test_subject_subscribe() {
-    void* subscriber[100];
-    for(int i = 0; i < MAX_SUBSCRIBERS; i++){
-        subscriber[i] = (void*)((uintptr_t)i);
-        subject_subscribe(s, subscriber[i], mock_callback);
-        dht22_t* dht22 = (dht22_t*)s->self;
-        notification_handle_t* temp = (notification_handle_t*)dht22->subject.subscribers[i];
-        TEST_ASSERT_NOT_NULL(temp);
-        TEST_ASSERT_EQUAL_PTR((void*)(uintptr_t)i, temp->instance);
-        TEST_ASSERT_EQUAL_PTR(mock_callback, temp->callback);
+void test_subject_subscribe(void) {
+    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
+        callback_called[i] = 0;
+        void* ctx = (void*)(uintptr_t)i;
+        subject_subscribe(s, ctx, mock_callback);
+    }
+
+    subject_notify(s);  
+
+    for (int i = 0; i < MAX_SUBSCRIBERS; i++) {
+        TEST_ASSERT_EQUAL(1, callback_called[i]); 
     }
 }
 
-void test_subject_unsubscribe(){
-    for(int i = 0; i < 10; i++)
-        subject_subscribe(s, NULL, mock_callback);
+void test_subject_unsubscribe(void) {
+    for (int i = 0; i < 100; i++) callback_called[i] = 0;
+
+    for (int i = 0; i < 10; i++) {
+        subject_subscribe(s, (void*)(uintptr_t)i, mock_callback);
+    }
+
     subject_unsubscribe(s, mock_callback);
     subject_notify(s);
-    TEST_ASSERT_EQUAL(0, called);
+
+    for (int i = 0; i < 10; i++) {
+        TEST_ASSERT_EQUAL(0, callback_called[i]);
+    }
 }
 
-void test_subject_notify() {
-    for(int i = 0; i < 10; i++)
-        subject_subscribe(s, NULL, mock_callback);
+
+void test_subject_notify(void) {
+    for (int i = 0; i < 100; i++) callback_called[i] = 0;
+
+    for (int i = 0; i < 10; i++) {
+        void* ctx = (void*)(uintptr_t)i;
+        subject_subscribe(s, ctx, mock_callback);
+    }
+
     subject_notify(s);
-    TEST_ASSERT_EQUAL(10, called);
-}
 
-void test_update_data() {
-    
+    for (int i = 0; i < 10; i++) {
+        TEST_ASSERT_EQUAL(1, callback_called[i]);
+    }
 }
 
 int run_subject_test_main(subject_create_fnc create_fnc, subject_destroy_fnc destroy_fnc){
