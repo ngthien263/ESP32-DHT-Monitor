@@ -1,3 +1,4 @@
+#ifndef UNIT_TEST
 #include "ssd1306.h"
 #include <stdint.h>
 #include <string.h>
@@ -286,3 +287,4 @@ void ssd1306_unsubscribe(ssd1306_i2c_module* module) {
 }
 
 
+#endif

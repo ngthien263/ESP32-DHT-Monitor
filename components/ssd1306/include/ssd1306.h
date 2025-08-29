@@ -1,3 +1,4 @@
+#ifndef UNIT_TEST
 #ifndef SSD1306_H
 #define SSD1306_H
 
@@ -48,3 +49,4 @@ void ssd1306_subscribe(ssd1306_i2c_module* module);
 void ssd1306_unsubscribe(ssd1306_i2c_module* module);
 #endif
 
+#endif

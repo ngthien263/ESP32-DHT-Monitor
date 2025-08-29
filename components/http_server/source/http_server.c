@@ -1,3 +1,4 @@
+#ifndef UNIT_TEST
 #include "http_server.h"
 #include "wifi.h"
 #include "esp_heap_caps.h"
@@ -64,3 +65,4 @@ httpd_handle_t http_server_init(void) {
     }
     return server;
 }
+#endif

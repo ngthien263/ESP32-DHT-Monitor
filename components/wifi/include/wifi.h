@@ -1,3 +1,4 @@
+#ifndef UNIT_TEST
 #include "esp_netif.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
@@ -20,3 +21,4 @@ void wifi_cred_save(const char* ssid, const char* pass);
 void wifi_cred_load(char* ssid_out, size_t* ssid_len, char* pass_out, size_t* pass_len);
 void wifi_cred_clear(void);
 bool wifi_wait_connected(uint32_t timeoutms);
+#ifndef UNIT_TEST

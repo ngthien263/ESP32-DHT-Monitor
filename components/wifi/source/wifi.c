@@ -1,3 +1,4 @@
+#ifndef UNIT_TEST
 #include "wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -161,3 +162,5 @@ void wifi_cred_clear(void) {
     err = nvs_commit(nvs);
     nvs_close(nvs);
 }
+
+#endif
