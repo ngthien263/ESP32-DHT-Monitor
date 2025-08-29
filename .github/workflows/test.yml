@@ -1,9 +1,10 @@
-name: Unit Tests
+
+name: Host Unit Tests
 
 on:
   push:
     branches:
-      - restructure
+    - main
   pull_request:
     branches:
       - main
