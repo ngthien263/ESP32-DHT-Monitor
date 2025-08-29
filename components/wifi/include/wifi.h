@@ -1,47 +1,22 @@
-/**
- * @file wifi.h
- * @brief WiFi setup and initialization API for ESP32.
- *
- * Provides functions to configure ESP32 as Access Point (AP) or Station (STA).
- */
-
-#ifndef WIFI_H
-#define WIFI_H
-
-#ifndef UNIT_TEST
 #include "esp_netif.h"
 #include "esp_wifi.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
-#define WIFI_NAMESPACE "wifi"
-/**
- * @struct wifi_setup_t
- * @brief Encapsulates WiFi configuration and mode.
- */
+#include "nvs_flash.h"
 
-typedef struct {
-    wifi_config_t wconfig;
-    wifi_mode_t mode;
-} wifi_setup_t;
+#define WIFI_AP_DEFAULT_SSID "ESP32"
+#define WIFI_AP_DEFAULT_PASS "123456789"
+void wifi_init();
+void wifi_destroy();
 
-/**
- * @brief Initialize ESP32 as a WiFi Access Point.
- * 
- * @param wsetup Pointer to WiFi setup structure.
- */
-void wifi_init_ap(wifi_setup_t* wsetup);
+void wifi_start_mode(wifi_mode_t mode, const char* ssid, const char* password);
+void wifi_start_config(wifi_config_t* wconfig, wifi_mode_t mode);
+#define wifi_start(first,  ...)\
+    _Generic((first), \
+                int: wifi_start_mode, \
+                wifi_mode_t: wifi_start_mode,\
+                wifi_config_t*: wifi_start_config\
+            )(first, ##__VA_ARGS__)
 
-
-/**
- * @brief Initialize ESP32 as a WiFi Station.
- * 
- * @param wsetup Pointer to WiFi setup structure.
- */
-void wifi_init_sta(wifi_setup_t* wsetup);
-
-#ifdef __cplusplus
-}
-#endif
-#endif
-#endif // WIFI_H
+void wifi_cred_save(const char* ssid, const char* pass);
+void wifi_cred_load(char* ssid_out, size_t* ssid_len, char* pass_out, size_t* pass_len);
+void wifi_cred_clear(void);
+bool wifi_wait_connected(uint32_t timeoutms);
