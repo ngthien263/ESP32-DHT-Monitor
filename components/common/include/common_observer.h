@@ -17,6 +17,7 @@
 
 #include "common_subject.h"
 #ifndef UNIT_TEST
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #else 
 #include "mock_freertos.h"

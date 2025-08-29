@@ -155,7 +155,7 @@ dht22_error_t dht22_get_data(dht22_t* self) {
         xSemaphoreGive(self->mtx);
     }
     else return DHT22_ERROR_TIMEOUT;
-    dht22_notify(self);
+    subject_notify(&self->subject);
 	return DHT22_OK;
 }
 
@@ -201,6 +201,7 @@ static void dht22_update_data_generic(void* self_ptr, void* out) {
 static void dht22_subscribe(void* self_ptr, void* client, subject_notify_callback_t cb) {
     dht22_t* self = (dht22_t*)self_ptr;
     notification_handle_t* nh = (notification_handle_t*)malloc(sizeof(notification_handle_t));
+    if (!nh) return;
     nh->instance = client;
     nh->callback = cb;
     for(int pos = 0; pos < MAX_SUBSCRIBERS; pos++){

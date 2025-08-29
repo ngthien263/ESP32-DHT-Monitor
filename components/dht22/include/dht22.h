@@ -53,6 +53,7 @@ void dht22_destroy(subject_t* subject);
 //  */
 // void dht22_update_data(dht22_t* self, dht22_data_t* out);
 
+dht22_error_t dht22_get_data(dht22_t* self);
 #ifdef __cplusplus
 }
 #endif
